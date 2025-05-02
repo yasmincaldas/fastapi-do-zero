@@ -9,8 +9,16 @@ packages = [{ include = "fast_zero" }]
 [tool.poetry.dependencies]
 python = ">=3.12,<4.0"
 fastapi = { extras = ["standard"], version = ">=0.115.12,<0.116.0" }
-sqlalchemy = ">=2.0.40,<3.0.0"
+sqlalchemy = {extras = ["asyncio"], version = "^2.0.40"}
 alembic = "^1.15.2"
+aiosqlite = "^0.21.0"
+pyjwt = "^2.10.1"
+tzdata = "^2025.2"
+pwdlib = {extras = ["argon2"], version = "^0.2.1"}
+
+[tool.poetry.group.dev.dependencies]
+factory-boy = "^3.3.3"
+pytest-asyncio = "^0.26.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
@@ -31,6 +39,7 @@ quote-style = 'single'
 [tool.pytest.ini_options]
 pythonpath = "."
 addopts = '-p no:warnings'
+asyncio_default_fixture_loop_scope = 'function'
 
 [tool.taskipy.tasks]
 lint = 'ruff check'
@@ -40,3 +49,6 @@ run = 'fastapi dev fast_zero/app.py'
 pre_test = 'task lint'
 test = 'pytest -s -x --cov=fast_zero -vv'
 post_test = 'coverage html'
+
+[tool.coverage.run]
+concurrency = ["thread", "greenlet"]

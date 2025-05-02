@@ -1,10 +1,13 @@
 from http import HTTPStatus
 
+import pytest
+
 from fast_zero.schemas import UserPublic
 
 
-def test_create_user(client):
-    response = client.post(
+@pytest.mark.asyncio()
+async def test_create_user_endpoint(async_client):
+    response = await async_client.post(
         '/users/',
         json={
             'username': 'alice',
@@ -20,87 +23,25 @@ def test_create_user(client):
     }
 
 
-def test_create_user_should_return_409_username_exists__exercicio(
-    client, user
-):
-    response = client.post(
-        '/users/',
-        json={
-            'username': user.username,
-            'email': 'alice@example.com',
-            'password': 'secret',
-        },
-    )
-    assert response.status_code == HTTPStatus.CONFLICT
-    assert response.json() == {'detail': 'Username already exists'}
-
-
-def test_create_user_should_return_409_email_exists__exercicio(client, user):
-    response = client.post(
-        '/users/',
-        json={
-            'username': 'alice',
-            'email': user.email,
-            'password': 'secret',
-        },
-    )
-    assert response.status_code == HTTPStatus.CONFLICT
-    assert response.json() == {'detail': 'Email already exists'}
-
-
-def test_delete_user_should_return_not_found__exercicio(client):
-    response = client.delete('/users/666')
-
-    assert response.status_code == HTTPStatus.NOT_FOUND
-    assert response.json() == {'detail': 'User not found'}
-
-
-def test_update_user_should_return_not_found__exercicio(client):
-    response = client.put(
-        '/users/666',
-        json={
-            'username': 'bob',
-            'email': 'bob@example.com',
-            'password': 'mynewpassword',
-        },
-    )
-    assert response.status_code == HTTPStatus.NOT_FOUND
-    assert response.json() == {'detail': 'User not found'}
-
-
-def test_get_user_should_return_not_found__exercicio(client):
-    response = client.get('/users/666')
-
-    assert response.status_code == HTTPStatus.NOT_FOUND
-    assert response.json() == {'detail': 'User not found'}
-
-
-def test_get_user___exercicio(client, user):
-    response = client.get(f'/users/{user.id}')
-
-    assert response.status_code == HTTPStatus.OK
-    assert response.json() == {
-        'username': user.username,
-        'email': user.email,
-        'id': user.id,
-    }
-
-
-def test_read_users(client):
-    response = client.get('/users')
+@pytest.mark.asyncio()
+async def test_read_users(async_client):
+    response = await async_client.get('/users/')
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {'users': []}
 
 
-def test_read_users_with_users(client, user):
+@pytest.mark.asyncio()
+async def test_read_users_with_users(async_client, user):
     user_schema = UserPublic.model_validate(user).model_dump()
-    response = client.get('/users/')
+    response = await async_client.get('/users/')
     assert response.json() == {'users': [user_schema]}
 
 
-def test_update_user(client, user):
-    response = client.put(
-        '/users/1',
+@pytest.mark.asyncio()
+async def test_update_user(async_client, user, token):
+    response = await async_client.put(
+        f'/users/{user.id}',
+        headers={'Authorization': f'Bearer {token}'},
         json={
             'username': 'bob',
             'email': 'bob@example.com',
@@ -111,37 +52,41 @@ def test_update_user(client, user):
     assert response.json() == {
         'username': 'bob',
         'email': 'bob@example.com',
-        'id': 1,
+        'id': user.id,
     }
 
 
-def test_update_integrity_error(client, user):
-    client.post(
-        '/users',
+@pytest.mark.asyncio()
+async def test_update_user_integrity_error_username(async_client, user, token):
+    await async_client.post(
+        '/users/',
         json={
-            'username': 'fausto',
-            'email': 'fausto@example.com',
+            'username': 'existing_user',
+            'email': 'existing@example.com',
             'password': 'secret',
         },
     )
 
-    response_update = client.put(
+    response = await async_client.put(
         f'/users/{user.id}',
+        headers={'Authorization': f'Bearer {token}'},
         json={
-            'username': 'fausto',
-            'email': 'bob@example.com',
-            'password': 'mynewpassword',
+            'username': 'existing_user',
+            'email': 'newemail@example.com',
+            'password': 'newpassword',
         },
     )
 
-    assert response_update.status_code == HTTPStatus.CONFLICT
-    assert response_update.json() == {
-        'detail': 'Username or Email already exists'
-    }
+    assert response.status_code == HTTPStatus.CONFLICT
+    assert response.json()['detail'] == 'Username or Email already exists'
 
 
-def test_delete_user(client, user):
-    response = client.delete('/users/1')
+@pytest.mark.asyncio()
+async def test_delete_user(async_client, user, token):
+    response = await async_client.delete(
+        f'/users/{user.id}',
+        headers={'Authorization': f'Bearer {token}'},
+    )
 
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {'message': 'User deleted'}

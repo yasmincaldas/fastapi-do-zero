@@ -1,25 +1,27 @@
 from http import HTTPStatus
 
+import pytest
+from fastapi import HTTPException
 from jwt import decode
 
-from fast_zero.security import (
-    SECRET_KEY,
-    create_access_token,
-)
+from fast_zero.security import create_access_token, get_current_user, settings
 
 
 def test_jwt():
     data = {'test': 'test'}
     token = create_access_token(data)
 
-    decoded = decode(token, SECRET_KEY, algorithms=['HS256'])
+    decoded = decode(
+        token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+    )
 
     assert decoded['test'] == data['test']
-    assert 'exp' in decoded
+    assert decoded['exp']
 
 
-def test_jwt_invalid_token(client):
-    response = client.delete(
+@pytest.mark.asyncio()
+async def test_jwt_invalid_token(async_client):
+    response = await async_client.delete(
         '/users/1', headers={'Authorization': 'Bearer token-invalido'}
     )
 
@@ -27,27 +29,22 @@ def test_jwt_invalid_token(client):
     assert response.json() == {'detail': 'Could not validate credentials'}
 
 
-def test_get_current_user_not_found__exercicio(client):
-    data = {'no-email': 'test'}
-    token = create_access_token(data)
+@pytest.mark.asyncio()
+async def test_get_current_user_none_username():
+    access_token = create_access_token(data={'sub': ''})
 
-    response = client.delete(
-        '/users/1',
-        headers={'Authorization': f'Bearer {token}'},
-    )
+    with pytest.raises(HTTPException) as exception:
+        await get_current_user(token=access_token)
 
-    assert response.status_code == HTTPStatus.UNAUTHORIZED
-    assert response.json() == {'detail': 'Could not validate credentials'}
+    assert exception.value.status_code == HTTPStatus.UNAUTHORIZED
 
 
-def test_get_current_user_does_not_exists__exercicio(client):
-    data = {'sub': 'test@test'}
-    token = create_access_token(data)
+@pytest.mark.asyncio()
+async def test_get_current_user_with_invalid_token(async_client, user):
+    access_token = create_access_token(data={'sub': 'invalid@email.com'})
 
-    response = client.delete(
-        '/users/1',
-        headers={'Authorization': f'Bearer {token}'},
-    )
+    headers = {'Authorization': f'Bearer {access_token}'}
+    response = await async_client.delete('/users/1', headers=headers)
 
     assert response.status_code == HTTPStatus.UNAUTHORIZED
     assert response.json() == {'detail': 'Could not validate credentials'}
