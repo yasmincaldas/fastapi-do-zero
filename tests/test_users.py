@@ -57,28 +57,21 @@ async def test_update_user(async_client, user, token):
 
 
 @pytest.mark.asyncio()
-async def test_update_user_integrity_error_username(async_client, user, token):
-    await async_client.post(
-        '/users/',
-        json={
-            'username': 'existing_user',
-            'email': 'existing@example.com',
-            'password': 'secret',
-        },
-    )
-
-    response = await async_client.put(
+async def test_update_integrity_error(async_client, user, other_user, token):
+    response_update = await async_client.put(
         f'/users/{user.id}',
         headers={'Authorization': f'Bearer {token}'},
         json={
-            'username': 'existing_user',
-            'email': 'newemail@example.com',
-            'password': 'newpassword',
+            'username': other_user.username,
+            'email': 'bob@example.com',
+            'password': 'mynewpassword',
         },
     )
 
-    assert response.status_code == HTTPStatus.CONFLICT
-    assert response.json()['detail'] == 'Username or Email already exists'
+    assert response_update.status_code == HTTPStatus.CONFLICT
+    assert response_update.json() == {
+        'detail': 'Username or Email already exists'
+    }
 
 
 @pytest.mark.asyncio()
@@ -90,3 +83,28 @@ async def test_delete_user(async_client, user, token):
 
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {'message': 'User deleted'}
+
+
+@pytest.mark.asyncio()
+async def test_update_user_with_wrong_user(async_client, other_user, token):
+    response = await async_client.put(
+        f'/users/{other_user.id}',
+        headers={'Authorization': f'Bearer {token}'},
+        json={
+            'username': 'bob',
+            'email': 'bob@example.com',
+            'password': 'mynewpassword',
+        },
+    )
+    assert response.status_code == HTTPStatus.FORBIDDEN
+    assert response.json() == {'detail': 'Not enough permissions'}
+
+
+@pytest.mark.asyncio()
+async def test_delete_user_wrong_user(async_client, other_user, token):
+    response = await async_client.delete(
+        f'/users/{other_user.id}',
+        headers={'Authorization': f'Bearer {token}'},
+    )
+    assert response.status_code == HTTPStatus.FORBIDDEN
+    assert response.json() == {'detail': 'Not enough permissions'}
