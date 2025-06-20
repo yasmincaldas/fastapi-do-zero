@@ -38,7 +38,7 @@ async def test_create_todo(async_client, token):
 @pytest.mark.asyncio()
 async def test_list_todos_should_return_5_todos(
     session, async_client, user, token
-    ):
+):
     expected_todos = 5
     session.add_all(TodoFactory.create_batch(5, user_id=user.id))
     await session.commit()
@@ -189,7 +189,7 @@ async def test_delete_todo(session, async_client, user, token):
     session.add(todo)
     await session.commit()
 
-    response = async_client.delete(
+    response = await async_client.delete(
         f'/todos/{todo.id}', headers={'Authorization': f'Bearer {token}'}
     )
 
@@ -201,7 +201,7 @@ async def test_delete_todo(session, async_client, user, token):
 
 @pytest.mark.asyncio()
 async def test_delete_todo_error(async_client, token):
-    response = async_client.delete(
+    response = await async_client.delete(
         f'/todos/{10}', headers={'Authorization': f'Bearer {token}'}
     )
 

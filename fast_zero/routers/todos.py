@@ -69,10 +69,7 @@ async def list_todos(
 
 @router.patch('/{todo_id}', response_model=TodoPublic)
 async def path_todo(
-    session: T_Session,
-    user: CurrentUser,
-    todo_id: int,
-    todo: TodoUpdate
+    session: T_Session, user: CurrentUser, todo_id: int, todo: TodoUpdate
 ):
     db_todo = await session.scalar(
         select(Todo).where(Todo.user_id == user.id, Todo.id == todo_id)
