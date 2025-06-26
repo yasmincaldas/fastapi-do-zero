@@ -6,7 +6,7 @@ from sqlalchemy import select
 from fast_zero.models import Todo, User
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_create_todo(session, user):
     todo = Todo(
         title='Test Todo',
@@ -29,7 +29,7 @@ async def test_create_todo(session, user):
     }
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_user_todo_relationship(session, user: User):
     todo = Todo(
         title='Test Todo',
@@ -47,7 +47,7 @@ async def test_user_todo_relationship(session, user: User):
     assert user.todos == [todo]
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_create_user(session, mock_db_time):
     with mock_db_time(model=User) as time:
         new_user = User(
@@ -65,5 +65,5 @@ async def test_create_user(session, mock_db_time):
         'email': 'teste@test',
         'todos': [],
         'created_at': time,
-        'updated_at': time
+        'updated_at': time,
     }

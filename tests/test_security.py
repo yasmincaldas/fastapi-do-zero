@@ -19,7 +19,7 @@ def test_jwt():
     assert decoded['exp']
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_jwt_invalid_token(async_client):
     response = await async_client.delete(
         '/users/1', headers={'Authorization': 'Bearer token-invalido'}
@@ -29,7 +29,7 @@ async def test_jwt_invalid_token(async_client):
     assert response.json() == {'detail': 'Could not validate credentials'}
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_get_current_user_none_username():
     access_token = create_access_token(data={'sub': ''})
 
@@ -39,7 +39,7 @@ async def test_get_current_user_none_username():
     assert exception.value.status_code == HTTPStatus.UNAUTHORIZED
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_get_current_user_with_invalid_token(async_client, user):
     access_token = create_access_token(data={'sub': 'invalid@email.com'})
 

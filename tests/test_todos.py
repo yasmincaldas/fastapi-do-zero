@@ -16,7 +16,7 @@ class TodoFactory(factory.Factory):
     user_id = 1
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_create_todo(async_client, token):
     response = await async_client.post(
         '/todos/',
@@ -35,7 +35,7 @@ async def test_create_todo(async_client, token):
     }
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_list_todos_should_return_5_todos(
     session, async_client, user, token
 ):
@@ -51,7 +51,7 @@ async def test_list_todos_should_return_5_todos(
     assert len(response.json()['todos']) == expected_todos
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_list_todos_pagination_should_return_2_todos(
     session, user, async_client, token
 ):
@@ -67,7 +67,7 @@ async def test_list_todos_pagination_should_return_2_todos(
     assert len(response.json()['todos']) == expected_todos
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_list_todos_filter_title_should_return_5_todos(
     session, user, async_client, token
 ):
@@ -85,7 +85,7 @@ async def test_list_todos_filter_title_should_return_5_todos(
     assert len(response.json()['todos']) == expected_todos
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_list_todos_filter_description_should_return_5_todos(
     session, user, async_client, token
 ):
@@ -103,7 +103,7 @@ async def test_list_todos_filter_description_should_return_5_todos(
     assert len(response.json()['todos']) == expected_todos
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_list_todos_filter_state_should_return_5_todos(
     session, user, async_client, token
 ):
@@ -121,7 +121,7 @@ async def test_list_todos_filter_state_should_return_5_todos(
     assert len(response.json()['todos']) == expected_todos
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_list_todos_filter_combined_should_return_5_todos(
     session, user, async_client, token
 ):
@@ -155,7 +155,7 @@ async def test_list_todos_filter_combined_should_return_5_todos(
     assert len(response.json()['todos']) == expected_todos
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_patch_todo_error(async_client, token):
     response = await async_client.patch(
         '/todos/10',
@@ -166,7 +166,7 @@ async def test_patch_todo_error(async_client, token):
     assert response.json() == {'detail': 'Task not found.'}
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_patch_todo(session, async_client, user, token):
     todo = TodoFactory(user_id=user.id)
 
@@ -182,7 +182,7 @@ async def test_patch_todo(session, async_client, user, token):
     assert response.json()['title'] == 'teste!'
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_delete_todo(session, async_client, user, token):
     todo = TodoFactory(user_id=user.id)
 
@@ -199,7 +199,7 @@ async def test_delete_todo(session, async_client, user, token):
     }
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_delete_todo_error(async_client, token):
     response = await async_client.delete(
         f'/todos/{10}', headers={'Authorization': f'Bearer {token}'}
